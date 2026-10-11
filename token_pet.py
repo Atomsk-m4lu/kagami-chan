@@ -701,6 +701,7 @@ class PetApp:
         cv.bind("<ButtonPress-1>", self._press)
         cv.bind("<B1-Motion>", self._motion)
         cv.bind("<ButtonRelease-1>", self._release)
+        cv.bind("<Double-Button-1>", lambda e: self._toggle_panel())
         cv.bind("<Button-3>", self._menu)
         cv.bind("<Enter>", self._hover_enter)
         cv.bind("<Leave>", self._hover_leave)
@@ -722,13 +723,7 @@ class PetApp:
 
     def _release(self, e):
         if self.drag and not self.moved and e.num == 1:
-            now = time.time()
-            if now - getattr(self, "_last_click", 0) < 0.45:
-                self._last_click = 0
-                self._toggle_panel()            # 双击：统计面板
-            else:
-                self._last_click = now
-                self._pet_head()                # 单击：摸头
+            self._pet_head()          # 单击：摸头（双击由 Double 事件接管）
         if self.drag and self.moved:
             self.cfg["pos"] = [self.root.winfo_x(), self.root.winfo_y()]
             save_config(self.cfg)
@@ -884,6 +879,10 @@ class PetApp:
 
     # -- 统计面板 ---------------------------------------------------------
     def _toggle_panel(self):
+        now = time.time()
+        if now - getattr(self, "_last_toggle", 0) < 0.3:
+            return                       # 双路径触发防抖
+        self._last_toggle = now
         if self.panel and self.panel.winfo_exists():
             self.panel.destroy()
             self.panel = None
