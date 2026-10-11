@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+original_image.jpg
+preview_grid.png
